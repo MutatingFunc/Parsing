@@ -7,7 +7,20 @@
 		<key>Parsing.xcscheme</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>0</integer>
+			<integer>3</integer>
+		</dict>
+	</dict>
+	<key>SuppressBuildableAutocreation</key>
+	<dict>
+		<key>1AD5296E1F3E488A0051035C</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>1AD529771F3E488A0051035C</key>
+		<dict>
+			<key>primary</key>
+			<true/>
 		</dict>
 	</dict>
 </dict>
