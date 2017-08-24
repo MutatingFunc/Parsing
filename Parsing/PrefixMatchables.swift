@@ -9,7 +9,6 @@
 import Foundation
 
 public protocol PrefixMatchable: CustomStringConvertible {
-	var matchMany: Bool {get mutating set}
 	func matchPrefix(_ str: Substring) -> Range<String.Index>?
 }
 public extension PrefixMatchable {
@@ -30,7 +29,7 @@ public struct MatchableString: PrefixMatchable {
 		return range.map{str.startIndex ..< str.index(str.startIndex, offsetBy: $0.upperBound.encodedOffset)}
 	}
 	public var description: String {
-		return "~^" + literal.description
+		return (caseSensitive ? "^" : "~^") + "\"" + literal.description + "\""
 	}
 }
 prefix operator ^
@@ -40,7 +39,7 @@ public prefix func ~^(str: String) -> MatchableString {return MatchableString(li
 
 
 public struct RegEx: PrefixMatchable {
-	public var regEx: String, caseSensitive: Bool, matchMany: Bool
+	public var regEx: String, caseSensitive: Bool
 	public func matchPrefix(_ str: Substring) -> Range<String.Index>? {
 		var options: String.CompareOptions = [.anchored, .regularExpression]
 		if !caseSensitive {options.insert(.caseInsensitive)}
@@ -53,9 +52,9 @@ public struct RegEx: PrefixMatchable {
 	}
 }
 prefix operator /
-public prefix func /(str: String) -> RegEx {return RegEx(regEx: str, caseSensitive: true, matchMany: false)}
+public prefix func /(str: String) -> RegEx {return RegEx(regEx: str, caseSensitive: true)}
 prefix operator ~/
-public prefix func ~/(str: String) -> RegEx {return RegEx(regEx: str, caseSensitive: false, matchMany: false)}
+public prefix func ~/(str: String) -> RegEx {return RegEx(regEx: str, caseSensitive: false)}
 
 
 public struct MatchableChars: PrefixMatchable {
