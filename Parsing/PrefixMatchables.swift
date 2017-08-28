@@ -15,10 +15,15 @@ public extension PrefixMatchable {
 	func parse(from str: inout Substring) -> Substring? {
 		guard let matchEnd = self.matchPrefix(str) else {return nil}
 		assert((str.startIndex ... str.endIndex).contains(matchEnd))
-		defer {str.removeSubrange(..<matchEnd)}
+		defer {
+			let original = str
+			str = str.suffix(from: matchEnd)
+			assert(original[str.startIndex ..< str.endIndex] == str) //Substring should still point to original String
+		}
 		return str[..<matchEnd]
 	}
 	var parser: Parser<Substring> {return Parser(self.parse)}
+	var ignore: Parser<()> {return self.parser ~> {_ in ()}}
 }
 public protocol ManyPrefixMatchable: PrefixMatchable {
 	func matchManyPrefix(_ str: Substring) -> String.Index?

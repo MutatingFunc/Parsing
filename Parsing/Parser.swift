@@ -38,14 +38,23 @@ public struct Parser<Token> {
 			return result
 		}
 		
-		for (lineNum, line) in zip(1..., file.split(separator: "\n")) {
-			for (linePos, charIndex) in zip(0..., line.characters.indices) {
-				if charIndex == rest.startIndex {
-					throw ParserError.failed(rest: rest, line: lineNum, position: linePos)
-				}
+		assert((file.startIndex ... file.endIndex).contains(rest.startIndex), "resulting substring should not begin past end of file")
+		assert(file[rest.startIndex ..< rest.endIndex] == rest, "substring should still correspond to the original string")
+		var lineNum = 1, linePos = 0
+		for (charIndex, char) in zip(file.indices, file) {
+			if char == "\n" {
+				lineNum += 1
+				linePos = 0
+			} else {
+				linePos += 1
+			}
+			if charIndex == rest.startIndex {
+				let error = ParserError.failed(rest: rest, line: lineNum, position: linePos)
+				print(error.localizedDescription)
+				throw error
 			}
 		}
-		throw ParserError.failed(rest: rest, line: 1, position: 0)
+		preconditionFailure("Unreachable if above assertion is true")
 	}
 }
 
@@ -64,7 +73,7 @@ precedencegroup ParsingPrecedence {
 }
 infix operator ~>: ParsingPrecedence
 public func ~><Token>(prefix: PrefixMatchable, token: @escaping (Substring) -> Token) -> Parser<Token> {
-	return prefix.parser ~> token
+	return Parser(prefix.parse) ~> token
 }
 public func ~><Token>(prefix: PrefixMatchable, token: Token) -> Parser<Token> {
 	return Parser {substr in
