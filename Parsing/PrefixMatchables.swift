@@ -14,7 +14,7 @@ public protocol PrefixMatchable: CustomStringConvertible {
 public extension PrefixMatchable {
 	func parse(from str: inout Substring) -> Substring? {
 		guard let matchEnd = self.matchPrefix(str) else {return nil}
-		assert(str.indices.contains(matchEnd))
+		assert((str.startIndex ... str.endIndex).contains(matchEnd))
 		defer {str.removeSubrange(..<matchEnd)}
 		return str[..<matchEnd]
 	}
