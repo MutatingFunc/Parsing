@@ -7,14 +7,21 @@
 //
 
 private var whitespaceParser: Parser<()>? = nil
+private func skipWhitespace(_ str: inout Substring) {whitespaceParser?.parse(&str)}
 public struct Parser<Token> {
 	public var parse: (inout Substring) -> Token?
 	public init(_ parse: @escaping (inout Substring) -> Token?) {
 		self.parse = parse
 	}
-	public func skippingWhitespace() -> Parser {
+	public func skippingLeadingWhitespace() -> Parser {
 		return Parser {substr in
-			whitespaceParser?.parse(&substr)
+			skipWhitespace(&substr)
+			return self.parse(&substr)
+		}
+	}
+	public func skippingTrailingWhitespace() -> Parser {
+		return Parser {substr in
+			defer {skipWhitespace(&substr)}
 			return self.parse(&substr)
 		}
 	}
@@ -28,20 +35,19 @@ public struct Parser<Token> {
 		}
 	}
 	
-	public func parseToEnd(_ file: String) throws -> Token {
+	public func tryParse(_ str: String) throws -> Token {
 		let startTime = CFAbsoluteTimeGetCurrent()
 		defer {print("\n\nTime to parse: \(CFAbsoluteTimeGetCurrent() - startTime)\n\n")}
 		
-		let parser = ..self -- (/"$").parser => {ast, _ in ast}
-		var rest = Substring(file)
-		if let result = parser.parse(&rest) {
+		var rest = Substring(str)
+		if let result = self.parse(&rest) {
 			return result
 		}
 		
-		assert((file.startIndex ... file.endIndex).contains(rest.startIndex), "resulting substring should not begin past end of file")
-		assert(file[rest.startIndex ..< rest.endIndex] == rest, "substring should still correspond to the original string")
+		assert((str.startIndex ... str.endIndex).contains(rest.startIndex), "resulting substring should not begin past end of file")
+		assert(str[rest.startIndex ..< rest.endIndex] == rest, "substring should still correspond to the original string")
 		var lineNum = 1, linePos = 0
-		for (charIndex, char) in zip(file.indices, file) {
+		for (charIndex, char) in zip(str.indices, str) {
 			if charIndex == rest.startIndex {
 				let error = ParserError.failed(rest: rest, line: lineNum, position: linePos)
 				print(error.localizedDescription)
@@ -94,7 +100,11 @@ public func ~~<Token>(parser: Parser<Token>, whitespace: Parser<()>) -> Parser<T
 
 prefix operator ..
 public prefix func ..<Token>(parser: Parser<Token>) -> Parser<Token> {
-	return parser.skippingWhitespace()
+	return parser.skippingLeadingWhitespace()
+}
+postfix operator ..
+public postfix func ..<Token>(parser: Parser<Token>) -> Parser<Token> {
+	return parser.skippingTrailingWhitespace()
 }
 infix operator -: AdditionPrecedence
 public func -<TokenA, TokenB>(lhs: Parser<TokenA>, rhs: Parser<TokenB>) -> Parser<(TokenA, TokenB)> {
@@ -108,7 +118,7 @@ public func -<TokenA, TokenB>(lhs: Parser<TokenA>, rhs: Parser<TokenB>) -> Parse
 
 infix operator --: AdditionPrecedence
 public func --<TokenA, TokenB>(lhs: Parser<TokenA>, rhs: Parser<TokenB>) -> Parser<(TokenA, TokenB)> {
-	return lhs - ..rhs
+	return lhs.. - rhs
 }
 
 public func |<Token>(lhs: Parser<Token>, rhs: Parser<Token>) -> Parser<Token> {
@@ -148,6 +158,9 @@ public postfix func +<Token>(parser: Parser<Token>) -> Parser<[Token]> {
 }
 postfix operator ..+
 public postfix func ..+<Token>(parser: Parser<Token>) -> Parser<[Token]> {
+	return (parser..)+
+	/*
+	deprecated due to cryptic errors
 	return Parser {substr in
 		guard let first = parser.parse(&substr) else {return nil}
 		var tokens = [first]
@@ -160,6 +173,7 @@ public postfix func ..+<Token>(parser: Parser<Token>) -> Parser<[Token]> {
 		substr = rest
 		return tokens
 	}
+*/
 }
 
 postfix operator *
@@ -177,6 +191,9 @@ public postfix func *<Token>(parser: Parser<Token>) -> Parser<[Token]> {
 }
 postfix operator ..*
 public postfix func ..*<Token>(parser: Parser<Token>) -> Parser<[Token]> {
+	return (parser..)*
+	/*
+	deprecated due to cryptic errors
 	return Parser {substr in
 		var tokens: [Token] = []
 		var rest = substr
@@ -192,6 +209,7 @@ public postfix func ..*<Token>(parser: Parser<Token>) -> Parser<[Token]> {
 		substr = rest
 		return tokens
 	}
+*/
 }
 
 

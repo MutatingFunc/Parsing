@@ -8,7 +8,7 @@
 
 import Foundation
 
-public protocol PrefixMatchable: CustomStringConvertible {
+public protocol PrefixMatchable {
 	func matchPrefix(_ str: Substring) -> String.Index?
 }
 public extension PrefixMatchable {
@@ -29,47 +29,51 @@ public protocol ManyPrefixMatchable: PrefixMatchable {
 	func matchManyPrefix(_ str: Substring) -> String.Index?
 }
 
-public struct MatchableString: PrefixMatchable {
-	public var literal: String, caseSensitive: Bool
-	public func matchPrefix(_ str: Substring) -> String.Index? {
+extension String {
+	func matchPrefix(_ str: Substring, regEx: Bool, caseSensitive: Bool) -> String.Index? {
 		var options: String.CompareOptions = [.anchored]
+		if regEx {options.insert(.regularExpression)}
 		if !caseSensitive {options.insert(.caseInsensitive)}
-		guard let range = str.range(of: literal, options: options) else {return nil}
+		guard let range = str.range(of: self, options: options) else {return nil}
 		assert(range.lowerBound.encodedOffset == 0, "bug where Substring.range result begins at 0, not .startIndex appears to be fixed")
 		//assert(range.lowerBound == str.startIndex, "anchored search should only match prefix)
 		return str.index(str.startIndex, offsetBy: range.upperBound.encodedOffset)
 	}
-	public var description: String {
-		return (caseSensitive ? "^" : "~^") + "\"\(literal.description)\""
+}
+extension String: PrefixMatchable {
+	public func matchPrefix(_ str: Substring) -> String.Index? {
+		return matchPrefix(str, regEx: false, caseSensitive: true)
 	}
 }
-prefix operator ^
-public prefix func ^(str: String) -> MatchableString {return MatchableString(literal: str, caseSensitive: true)}
-prefix operator ~^
-public prefix func ~^(str: String) -> MatchableString {return MatchableString(literal: str, caseSensitive: false)}
-
+public struct CaseInsensitiveString: PrefixMatchable {
+	public var string: String
+	public func matchPrefix(_ str: Substring) -> String.Index? {
+		return string.matchPrefix(str, regEx: false, caseSensitive: false)
+	}
+}
 
 public struct RegEx: PrefixMatchable {
-	public var regEx: String, caseSensitive: Bool
+	public var string: String
 	public func matchPrefix(_ str: Substring) -> String.Index? {
-		var options: String.CompareOptions = [.anchored, .regularExpression]
-		if !caseSensitive {options.insert(.caseInsensitive)}
-		guard let range = str.range(of: regEx, options: options) else {return nil}
-		assert(range.lowerBound.encodedOffset == 0, "bug where Substring.range result begins at 0, not .startIndex appears to be fixed")
-		//assert(range.lowerBound == str.startIndex, "anchored search should only match prefix)
-		return str.index(str.startIndex, offsetBy: range.upperBound.encodedOffset)
-	}
-	public var description: String {
-		return (caseSensitive ? "/" : "~/") + "\"\(regEx)\""
+		return string.matchPrefix(str, regEx: true, caseSensitive: true)
 	}
 }
-prefix operator /
-public prefix func /(str: String) -> RegEx {return RegEx(regEx: str, caseSensitive: true)}
-prefix operator ~/
-public prefix func ~/(str: String) -> RegEx {return RegEx(regEx: str, caseSensitive: false)}
+extension String {
+	public var regEx: RegEx {return RegEx(string: self)}
+}
+public struct CaseInsensitiveRegEx: PrefixMatchable {
+	public var string: String
+	public func matchPrefix(_ str: Substring) -> String.Index? {
+		return string.matchPrefix(str, regEx: true, caseSensitive: false)
+	}
+}
+
+prefix operator ~
+public prefix func ~(str: String) -> CaseInsensitiveString {return .init(string: str)}
+public prefix func ~(regEx: RegEx) -> CaseInsensitiveRegEx {return .init(string: regEx.string)}
 
 
-public struct MatchableChars: ManyPrefixMatchable {
+public struct MatchableCharSet: ManyPrefixMatchable {
 	public var chars: CharacterSet
 	public func matchPrefix(_ str: Substring) -> String.Index? {
 		let str = str.unicodeScalars.prefix(1)
@@ -85,37 +89,25 @@ public struct MatchableChars: ManyPrefixMatchable {
 		if matchEnd == str.startIndex {return nil}
 		return matchEnd
 	}
-	public var description: String {
-		return "/\"\(chars.description)\""
-	}
 }
-public prefix func /(chars: CharacterSet) -> MatchableChars {return MatchableChars(chars: chars)}
+prefix operator /
+public prefix func /(chars: CharacterSet) -> MatchableCharSet {return .init(chars: chars)}
 prefix operator ¬/
-public prefix func ¬/(chars: CharacterSet) -> MatchableChars {return MatchableChars(chars: chars.inverted)}
+public prefix func ¬/(chars: CharacterSet) -> MatchableCharSet {return .init(chars: chars.inverted)}
 prefix operator ¬
-public prefix func ¬(prefix: MatchableChars) -> MatchableChars {return MatchableChars(chars: prefix.chars.inverted)}
+public prefix func ¬(prefix: MatchableCharSet) -> MatchableCharSet {return .init(chars: prefix.chars.inverted)}
 
 
 public struct MatchOptional: PrefixMatchable {
 	var prefix: PrefixMatchable
 	public func matchPrefix(_ str: Substring) -> String.Index? {
-		if let prefix = prefix as? MatchOptional {
-			return prefix.matchPrefix(str)
-		}
-		if let matchEnd = prefix.matchPrefix(str) {
-			return matchEnd
-		}
-		return str.startIndex
+		return prefix.matchPrefix(str) ?? str.startIndex
 	}
 	public func matchManyPrefix(_ str: Substring) -> String.Index? {
 		return self.matchPrefix(str)
 	}
-	public var description: String {
-		return "(" + prefix.description + ")+"
-	}
 }
 public postfix func .?(prefix: PrefixMatchable) -> MatchOptional {return MatchOptional(prefix: prefix)}
-
 
 public struct MatchMany: ManyPrefixMatchable {
 	var prefix: PrefixMatchable
@@ -129,9 +121,6 @@ public struct MatchMany: ManyPrefixMatchable {
 	}
 	public func matchManyPrefix(_ str: Substring) -> String.Index? {
 		return self.matchPrefix(str)
-	}
-	public var description: String {
-		return "(" + prefix.description + ")+"
 	}
 }
 public postfix func +(prefix: PrefixMatchable) -> MatchMany {return MatchMany(prefix: prefix)}
