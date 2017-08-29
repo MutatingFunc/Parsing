@@ -32,7 +32,7 @@ public struct Parser<Token> {
 		let startTime = CFAbsoluteTimeGetCurrent()
 		defer {print("\n\nTime to parse: \(CFAbsoluteTimeGetCurrent() - startTime)\n\n")}
 		
-		let parser = self → (/"$").parser ~> {ast, _ in ast}
+		let parser = ..self -- (/"$").parser => {ast, _ in ast}
 		var rest = Substring(file)
 		if let result = parser.parse(&rest) {
 			return result
@@ -68,36 +68,36 @@ public enum ParserError: LocalizedError {
 }
 
 precedencegroup ParsingPrecedence {
-	lowerThan: AdditionPrecedence
-	higherThan: WhitespacePrecedence
+	lowerThan: DefaultPrecedence, LogicalDisjunctionPrecedence
+	higherThan: TernaryPrecedence, WhitespacePrecedence
 }
-infix operator ~>: ParsingPrecedence
-public func ~><Token>(prefix: PrefixMatchable, token: @escaping (Substring) -> Token) -> Parser<Token> {
-	return Parser(prefix.parse) ~> token
+infix operator =>: ParsingPrecedence
+public func =><Token>(prefix: PrefixMatchable, token: @escaping (Substring) -> Token) -> Parser<Token> {
+	return Parser(prefix.parse) => token
 }
-public func ~><Token>(prefix: PrefixMatchable, token: Token) -> Parser<Token> {
+public func =><Token>(prefix: PrefixMatchable, token: Token) -> Parser<Token> {
 	return Parser {substr in
 		prefix.parse(from: &substr) != nil ? token : nil
 	}
 }
-public func ~><Token, AST>(parser: Parser<Token>, transform: @escaping (Token) -> AST) -> Parser<AST> {
+public func =><Token, AST>(parser: Parser<Token>, transform: @escaping (Token) -> AST) -> Parser<AST> {
 	return Parser {substr in
 		parser.parse(&substr).map(transform)
 	}
 }
 
 precedencegroup WhitespacePrecedence {}
-infix operator --: WhitespacePrecedence
-public func --<Token>(parser: Parser<Token>, whitespace: Parser<()>) -> Parser<Token> {
+infix operator ~~: WhitespacePrecedence
+public func ~~<Token>(parser: Parser<Token>, whitespace: Parser<()>) -> Parser<Token> {
 	return parser.withWhitespaceOverride(whitespace)
 }
 
-prefix operator -
-public prefix func -<Token>(parser: Parser<Token>) -> Parser<Token> {
+prefix operator ..
+public prefix func ..<Token>(parser: Parser<Token>) -> Parser<Token> {
 	return parser.skippingWhitespace()
 }
-infix operator →: AdditionPrecedence
-public func →<TokenA, TokenB>(lhs: Parser<TokenA>, rhs: Parser<TokenB>) -> Parser<(TokenA, TokenB)> {
+infix operator -: AdditionPrecedence
+public func -<TokenA, TokenB>(lhs: Parser<TokenA>, rhs: Parser<TokenB>) -> Parser<(TokenA, TokenB)> {
 	return Parser {substr in
 		if let token1 = lhs.parse(&substr), let token2 = rhs.parse(&substr) {
 			return (token1, token2)
@@ -106,9 +106,9 @@ public func →<TokenA, TokenB>(lhs: Parser<TokenA>, rhs: Parser<TokenB>) -> Par
 	}
 }
 
-infix operator -→: AdditionPrecedence
-public func -→<TokenA, TokenB>(lhs: Parser<TokenA>, rhs: Parser<TokenB>) -> Parser<(TokenA, TokenB)> {
-	return lhs → -rhs
+infix operator --: AdditionPrecedence
+public func --<TokenA, TokenB>(lhs: Parser<TokenA>, rhs: Parser<TokenB>) -> Parser<(TokenA, TokenB)> {
+	return lhs - ..rhs
 }
 
 public func |<Token>(lhs: Parser<Token>, rhs: Parser<Token>) -> Parser<Token> {
@@ -146,8 +146,8 @@ public postfix func +<Token>(parser: Parser<Token>) -> Parser<[Token]> {
 		return tokens
 	}
 }
-postfix operator -+
-public postfix func -+<Token>(parser: Parser<Token>) -> Parser<[Token]> {
+postfix operator ..+
+public postfix func ..+<Token>(parser: Parser<Token>) -> Parser<[Token]> {
 	return Parser {substr in
 		guard let first = parser.parse(&substr) else {return nil}
 		var tokens = [first]
@@ -175,8 +175,8 @@ public postfix func *<Token>(parser: Parser<Token>) -> Parser<[Token]> {
 		return tokens
 	}
 }
-postfix operator -*
-public postfix func -*<Token>(parser: Parser<Token>) -> Parser<[Token]> {
+postfix operator ..*
+public postfix func ..*<Token>(parser: Parser<Token>) -> Parser<[Token]> {
 	return Parser {substr in
 		var tokens: [Token] = []
 		var rest = substr
@@ -197,28 +197,28 @@ public postfix func -*<Token>(parser: Parser<Token>) -> Parser<[Token]> {
 
 //required due to lack of variadics
 
-public func →<TokenA, TokenB, TokenZ>(lhs: Parser<(TokenA, TokenB)>, rhs: Parser<TokenZ>) -> Parser<(TokenA, TokenB, TokenZ)> {
-	return lhs → rhs ~> {($0.0.0, $0.0.1, $0.1)}
+public func -<TokenA, TokenB, TokenZ>(lhs: Parser<(TokenA, TokenB)>, rhs: Parser<TokenZ>) -> Parser<(TokenA, TokenB, TokenZ)> {
+	return lhs - rhs => {($0.0.0, $0.0.1, $0.1)}
 }
-public func →<TokenA, TokenB, TokenC, TokenZ>(lhs: Parser<((TokenA, TokenB), TokenC)>, rhs: Parser<TokenZ>) -> Parser<(TokenA, TokenB, TokenC, TokenZ)> {
-	return lhs → rhs ~> {($0.0.0.0, $0.0.0.1, $0.0.1, $0.1)}
+public func -<TokenA, TokenB, TokenC, TokenZ>(lhs: Parser<((TokenA, TokenB), TokenC)>, rhs: Parser<TokenZ>) -> Parser<(TokenA, TokenB, TokenC, TokenZ)> {
+	return lhs - rhs => {($0.0.0.0, $0.0.0.1, $0.0.1, $0.1)}
 }
-public func →<TokenA, TokenB, TokenC, TokenD, TokenZ>(lhs: Parser<(((TokenA, TokenB), TokenC), TokenD)>, rhs: Parser<TokenZ>) -> Parser<(TokenA, TokenB, TokenC, TokenD, TokenZ)> {
-	return lhs → rhs ~> {($0.0.0.0.0, $0.0.0.0.1, $0.0.0.1, $0.0.1, $0.1)}
+public func -<TokenA, TokenB, TokenC, TokenD, TokenZ>(lhs: Parser<(((TokenA, TokenB), TokenC), TokenD)>, rhs: Parser<TokenZ>) -> Parser<(TokenA, TokenB, TokenC, TokenD, TokenZ)> {
+	return lhs - rhs => {($0.0.0.0.0, $0.0.0.0.1, $0.0.0.1, $0.0.1, $0.1)}
 }
-public func →<TokenA, TokenB, TokenC, TokenD, TokenE, TokenZ>(lhs: Parser<((((TokenA, TokenB), TokenC), TokenD), TokenE)>, rhs: Parser<TokenZ>) -> Parser<(TokenA, TokenB, TokenC, TokenD, TokenE, TokenZ)> {
-	return lhs → rhs ~> {($0.0.0.0.0.0, $0.0.0.0.0.1, $0.0.0.0.1, $0.0.0.1, $0.0.1, $0.1)}
+public func -<TokenA, TokenB, TokenC, TokenD, TokenE, TokenZ>(lhs: Parser<((((TokenA, TokenB), TokenC), TokenD), TokenE)>, rhs: Parser<TokenZ>) -> Parser<(TokenA, TokenB, TokenC, TokenD, TokenE, TokenZ)> {
+	return lhs - rhs => {($0.0.0.0.0.0, $0.0.0.0.0.1, $0.0.0.0.1, $0.0.0.1, $0.0.1, $0.1)}
 }
 
-public func -→<TokenA, TokenB, TokenZ>(lhs: Parser<(TokenA, TokenB)>, rhs: Parser<TokenZ>) -> Parser<(TokenA, TokenB, TokenZ)> {
-	return lhs -→ rhs ~> {($0.0.0, $0.0.1, $0.1)}
+public func --<TokenA, TokenB, TokenZ>(lhs: Parser<(TokenA, TokenB)>, rhs: Parser<TokenZ>) -> Parser<(TokenA, TokenB, TokenZ)> {
+	return lhs -- rhs => {($0.0.0, $0.0.1, $0.1)}
 }
-public func -→<TokenA, TokenB, TokenC, TokenZ>(lhs: Parser<((TokenA, TokenB), TokenC)>, rhs: Parser<TokenZ>) -> Parser<(TokenA, TokenB, TokenC, TokenZ)> {
-	return lhs -→ rhs ~> {($0.0.0.0, $0.0.0.1, $0.0.1, $0.1)}
+public func --<TokenA, TokenB, TokenC, TokenZ>(lhs: Parser<((TokenA, TokenB), TokenC)>, rhs: Parser<TokenZ>) -> Parser<(TokenA, TokenB, TokenC, TokenZ)> {
+	return lhs -- rhs => {($0.0.0.0, $0.0.0.1, $0.0.1, $0.1)}
 }
-public func -→<TokenA, TokenB, TokenC, TokenD, TokenZ>(lhs: Parser<(((TokenA, TokenB), TokenC), TokenD)>, rhs: Parser<TokenZ>) -> Parser<(TokenA, TokenB, TokenC, TokenD, TokenZ)> {
-	return lhs -→ rhs ~> {($0.0.0.0.0, $0.0.0.0.1, $0.0.0.1, $0.0.1, $0.1)}
+public func --<TokenA, TokenB, TokenC, TokenD, TokenZ>(lhs: Parser<(((TokenA, TokenB), TokenC), TokenD)>, rhs: Parser<TokenZ>) -> Parser<(TokenA, TokenB, TokenC, TokenD, TokenZ)> {
+	return lhs -- rhs => {($0.0.0.0.0, $0.0.0.0.1, $0.0.0.1, $0.0.1, $0.1)}
 }
-public func -→<TokenA, TokenB, TokenC, TokenD, TokenE, TokenZ>(lhs: Parser<((((TokenA, TokenB), TokenC), TokenD), TokenE)>, rhs: Parser<TokenZ>) -> Parser<(TokenA, TokenB, TokenC, TokenD, TokenE, TokenZ)> {
-	return lhs -→ rhs ~> {($0.0.0.0.0.0, $0.0.0.0.0.1, $0.0.0.0.1, $0.0.0.1, $0.0.1, $0.1)}
+public func --<TokenA, TokenB, TokenC, TokenD, TokenE, TokenZ>(lhs: Parser<((((TokenA, TokenB), TokenC), TokenD), TokenE)>, rhs: Parser<TokenZ>) -> Parser<(TokenA, TokenB, TokenC, TokenD, TokenE, TokenZ)> {
+	return lhs -- rhs => {($0.0.0.0.0.0, $0.0.0.0.0.1, $0.0.0.0.1, $0.0.0.1, $0.0.1, $0.1)}
 }

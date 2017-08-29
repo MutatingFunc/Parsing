@@ -23,7 +23,7 @@ public extension PrefixMatchable {
 		return str[..<matchEnd]
 	}
 	var parser: Parser<Substring> {return Parser(self.parse)}
-	var ignore: Parser<()> {return self.parser ~> {_ in ()}}
+	var ignore: Parser<()> {return self.parser => {_ in ()}}
 }
 public protocol ManyPrefixMatchable: PrefixMatchable {
 	func matchManyPrefix(_ str: Substring) -> String.Index?
