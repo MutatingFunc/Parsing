@@ -14,12 +14,12 @@ public struct Parser<Token> {
 	}
 	public func skippingWhitespace() -> Parser {
 		return Parser {substr in
-			while whitespaceParser?.parse(&substr) != nil {}
+			whitespaceParser?.parse(&substr)
 			return self.parse(&substr)
 		}
 	}
 	
-	public func withWhitespace(_ whitespace: Parser<()>?) -> Parser {
+	public func withWhitespaceOverride(_ whitespace: Parser<()>?) -> Parser {
 		return Parser {substr in
 			let oldValue = whitespaceParser
 			whitespaceParser = whitespace
@@ -42,16 +42,16 @@ public struct Parser<Token> {
 		assert(file[rest.startIndex ..< rest.endIndex] == rest, "substring should still correspond to the original string")
 		var lineNum = 1, linePos = 0
 		for (charIndex, char) in zip(file.indices, file) {
+			if charIndex == rest.startIndex {
+				let error = ParserError.failed(rest: rest, line: lineNum, position: linePos)
+				print(error.localizedDescription)
+				throw error
+			}
 			if char == "\n" {
 				lineNum += 1
 				linePos = 0
 			} else {
 				linePos += 1
-			}
-			if charIndex == rest.startIndex {
-				let error = ParserError.failed(rest: rest, line: lineNum, position: linePos)
-				print(error.localizedDescription)
-				throw error
 			}
 		}
 		preconditionFailure("Unreachable if above assertion is true")
@@ -89,7 +89,7 @@ public func ~><Token, AST>(parser: Parser<Token>, transform: @escaping (Token) -
 precedencegroup WhitespacePrecedence {}
 infix operator --: WhitespacePrecedence
 public func --<Token>(parser: Parser<Token>, whitespace: Parser<()>) -> Parser<Token> {
-	return parser.withWhitespace(whitespace)
+	return parser.withWhitespaceOverride(whitespace)
 }
 
 prefix operator -
