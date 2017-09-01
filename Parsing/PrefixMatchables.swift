@@ -30,10 +30,10 @@ public protocol ManyPrefixMatchable: PrefixMatchable {
 }
 
 extension String {
-	func matchPrefix(_ str: Substring, regEx: Bool, caseSensitive: Bool) -> String.Index? {
+	func matchPrefix(_ str: Substring, regEx: Bool, caseInsensitive: Bool) -> String.Index? {
 		var options: String.CompareOptions = [.anchored]
 		if regEx {options.insert(.regularExpression)}
-		if !caseSensitive {options.insert(.caseInsensitive)}
+		if caseInsensitive {options.insert(.caseInsensitive)}
 		guard let range = str.range(of: self, options: options) else {return nil}
 		assert(range.lowerBound.encodedOffset == 0, "bug where Substring.range result begins at 0, not .startIndex appears to be fixed")
 		//assert(range.lowerBound == str.startIndex, "anchored search should only match prefix)
@@ -42,20 +42,21 @@ extension String {
 }
 extension String: PrefixMatchable {
 	public func matchPrefix(_ str: Substring) -> String.Index? {
-		return matchPrefix(str, regEx: false, caseSensitive: true)
+		return matchPrefix(str, regEx: false, caseInsensitive: false)
 	}
 }
 public struct CaseInsensitiveString: PrefixMatchable {
 	public var string: String
 	public func matchPrefix(_ str: Substring) -> String.Index? {
-		return string.matchPrefix(str, regEx: false, caseSensitive: false)
+		return string.matchPrefix(str, regEx: false, caseInsensitive: true)
 	}
 }
 
 public struct RegEx: PrefixMatchable {
+	public static let eof = "$".regEx
 	public var string: String
 	public func matchPrefix(_ str: Substring) -> String.Index? {
-		return string.matchPrefix(str, regEx: true, caseSensitive: true)
+		return string.matchPrefix(str, regEx: true, caseInsensitive: false)
 	}
 }
 extension String {
@@ -64,7 +65,7 @@ extension String {
 public struct CaseInsensitiveRegEx: PrefixMatchable {
 	public var string: String
 	public func matchPrefix(_ str: Substring) -> String.Index? {
-		return string.matchPrefix(str, regEx: true, caseSensitive: false)
+		return string.matchPrefix(str, regEx: true, caseInsensitive: true)
 	}
 }
 
