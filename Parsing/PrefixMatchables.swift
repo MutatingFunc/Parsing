@@ -29,6 +29,10 @@ public protocol ManyPrefixMatchable: PrefixMatchable {
 	func matchManyPrefix(_ str: Substring) -> String.Index?
 }
 
+public extension RawRepresentable/*: PrefixMatchable*/ where RawValue: PrefixMatchable {
+	func matchPrefix(_ str: Substring) -> String.Index? {return rawValue.matchPrefix(str)}
+}
+
 extension String {
 	func matchPrefix(_ str: Substring, regEx: Bool, caseInsensitive: Bool) -> String.Index? {
 		var options: String.CompareOptions = [.anchored]

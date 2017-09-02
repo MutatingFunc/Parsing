@@ -50,7 +50,7 @@ public struct Parser<Token> {
 		for (charIndex, char) in zip(str.indices, str) {
 			if charIndex == rest.startIndex {
 				let error = ParserError.failed(rest: rest, line: lineNum, position: linePos)
-				print(error.localizedDescription)
+				print("Error: " + error.localizedDescription)
 				throw error
 			}
 			if char == "\n" {
@@ -121,6 +121,17 @@ public func --<TokenA, TokenB>(lhs: Parser<TokenA>, rhs: Parser<TokenB>) -> Pars
 	return lhs.. - rhs
 }
 
+prefix operator |
+public prefix func |<Matchable: PrefixMatchable>(_ tokens: [Matchable]) -> Parser<Matchable> {
+	return Parser {substr in
+		let original = substr
+		for token in tokens {
+			if token.parse(from: &substr) != nil {return token}
+			substr = original
+		}
+		return nil
+	}
+}
 public func |<Token>(lhs: Parser<Token>, rhs: Parser<Token>) -> Parser<Token> {
 	return Parser {substr in
 		let original = substr
