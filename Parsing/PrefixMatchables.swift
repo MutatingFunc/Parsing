@@ -39,9 +39,10 @@ extension String {
 		if regEx {options.insert(.regularExpression)}
 		if caseInsensitive {options.insert(.caseInsensitive)}
 		guard let range = str.range(of: self, options: options) else {return nil}
-		assert(range.lowerBound.encodedOffset == 0, "bug where Substring.range result begins at 0, not .startIndex appears to be fixed")
-		//assert(range.lowerBound == str.startIndex, "anchored search should only match prefix)
-		return str.index(str.startIndex, offsetBy: range.upperBound.encodedOffset)
+		//assert(range.lowerBound.encodedOffset == 0, "bug where Substring.range result begins at 0, not .startIndex appears to be fixed") //fixed
+		//return str.index(str.startIndex, offsetBy: range.upperBound.encodedOffset)
+		assert(range.lowerBound == str.startIndex, "anchored search should only match prefix")
+		return range.upperBound
 	}
 }
 extension String: PrefixMatchable {
