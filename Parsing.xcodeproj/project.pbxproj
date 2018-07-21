@@ -11,10 +11,7 @@
 		1AD5297E1F3E488A0051035C /* ParsingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AD5297D1F3E488A0051035C /* ParsingTests.swift */; };
 		1AD529801F3E488A0051035C /* Parsing.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AD529721F3E488A0051035C /* Parsing.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1AD5298A1F3E48970051035C /* Parser.swift in Headers */ = {isa = PBXBuildFile; fileRef = 1AD529891F3E48970051035C /* Parser.swift */; };
-		1AD5298F1F3E48D30051035C /* JITCompiler.swift in Headers */ = {isa = PBXBuildFile; fileRef = 1AD5298E1F3E48D30051035C /* JITCompiler.swift */; };
 		1AD5299B1F3E49370051035C /* Parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AD529891F3E48970051035C /* Parser.swift */; };
-		1AD5299C1F3E49390051035C /* JITCompiler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AD5298E1F3E48D30051035C /* JITCompiler.swift */; };
-		1AD529AC1F3E49680051035C /* LLVM.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AD529A71F3E49520051035C /* LLVM.framework */; };
 		1AD529B41F3E4EDF0051035C /* PrefixMatchables.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AD529B31F3E4EDF0051035C /* PrefixMatchables.swift */; };
 /* End PBXBuildFile section */
 
@@ -26,27 +23,6 @@
 			remoteGlobalIDString = 1AD5296E1F3E488A0051035C;
 			remoteInfo = Parsing;
 		};
-		1AD529A41F3E49520051035C /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 1AD5299E1F3E49520051035C /* LLVM.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = "LLVM::LLVMTests::Product";
-			remoteInfo = LLVMTests;
-		};
-		1AD529A61F3E49520051035C /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 1AD5299E1F3E49520051035C /* LLVM.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = "LLVM::LLVM::Product";
-			remoteInfo = LLVM;
-		};
-		1AD529AF1F3E4BF80051035C /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 1AD5299E1F3E49520051035C /* LLVM.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = "LLVM::LLVM";
-			remoteInfo = LLVM;
-		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
@@ -57,8 +33,6 @@
 		1AD5297D1F3E488A0051035C /* ParsingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParsingTests.swift; sourceTree = "<group>"; };
 		1AD5297F1F3E488A0051035C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		1AD529891F3E48970051035C /* Parser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Parser.swift; sourceTree = "<group>"; };
-		1AD5298E1F3E48D30051035C /* JITCompiler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JITCompiler.swift; sourceTree = "<group>"; };
-		1AD5299E1F3E49520051035C /* LLVM.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = LLVM.xcodeproj; path = "../LLVMSwift-0.1.11/LLVM.xcodeproj"; sourceTree = "<group>"; };
 		1AD529B31F3E4EDF0051035C /* PrefixMatchables.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrefixMatchables.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -67,7 +41,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1AD529AC1F3E49680051035C /* LLVM.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -85,7 +58,6 @@
 		1AD529651F3E488A0051035C = {
 			isa = PBXGroup;
 			children = (
-				1AD5299E1F3E49520051035C /* LLVM.xcodeproj */,
 				1AD529711F3E488A0051035C /* Parsing */,
 				1AD5297C1F3E488A0051035C /* ParsingTests */,
 				1AD529701F3E488A0051035C /* Products */,
@@ -106,7 +78,6 @@
 			children = (
 				1AD529B31F3E4EDF0051035C /* PrefixMatchables.swift */,
 				1AD529891F3E48970051035C /* Parser.swift */,
-				1AD5298E1F3E48D30051035C /* JITCompiler.swift */,
 				1AD529721F3E488A0051035C /* Parsing.h */,
 				1AD529731F3E488A0051035C /* Info.plist */,
 			);
@@ -122,15 +93,6 @@
 			path = ParsingTests;
 			sourceTree = "<group>";
 		};
-		1AD5299F1F3E49520051035C /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				1AD529A51F3E49520051035C /* LLVMTests.xctest */,
-				1AD529A71F3E49520051035C /* LLVM.framework */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -139,7 +101,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				1AD5298A1F3E48970051035C /* Parser.swift in Headers */,
-				1AD5298F1F3E48D30051035C /* JITCompiler.swift in Headers */,
 				1AD529801F3E488A0051035C /* Parsing.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -159,7 +120,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				1AD529B01F3E4BF80051035C /* PBXTargetDependency */,
 			);
 			name = Parsing;
 			productName = Parsing;
@@ -213,12 +173,6 @@
 			mainGroup = 1AD529651F3E488A0051035C;
 			productRefGroup = 1AD529701F3E488A0051035C /* Products */;
 			projectDirPath = "";
-			projectReferences = (
-				{
-					ProductGroup = 1AD5299F1F3E49520051035C /* Products */;
-					ProjectRef = 1AD5299E1F3E49520051035C /* LLVM.xcodeproj */;
-				},
-			);
 			projectRoot = "";
 			targets = (
 				1AD5296E1F3E488A0051035C /* Parsing */,
@@ -226,23 +180,6 @@
 			);
 		};
 /* End PBXProject section */
-
-/* Begin PBXReferenceProxy section */
-		1AD529A51F3E49520051035C /* LLVMTests.xctest */ = {
-			isa = PBXReferenceProxy;
-			fileType = file;
-			path = LLVMTests.xctest;
-			remoteRef = 1AD529A41F3E49520051035C /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		1AD529A71F3E49520051035C /* LLVM.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = LLVM.framework;
-			remoteRef = 1AD529A61F3E49520051035C /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-/* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
 		1AD5296D1F3E488A0051035C /* Resources */ = {
@@ -267,7 +204,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				1AD5299B1F3E49370051035C /* Parser.swift in Sources */,
-				1AD5299C1F3E49390051035C /* JITCompiler.swift in Sources */,
 				1AD529B41F3E4EDF0051035C /* PrefixMatchables.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -287,11 +223,6 @@
 			isa = PBXTargetDependency;
 			target = 1AD5296E1F3E488A0051035C /* Parsing */;
 			targetProxy = 1AD5297A1F3E488A0051035C /* PBXContainerItemProxy */;
-		};
-		1AD529B01F3E4BF80051035C /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = LLVM;
-			targetProxy = 1AD529AF1F3E4BF80051035C /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
