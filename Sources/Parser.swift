@@ -190,6 +190,25 @@ public postfix func ..*<Token>(parser: Parser<Token>) -> Parser<[Token]> {
 	return (parser..)*
 }
 
+//allows for closure recursion
+public func recursive<Token>(_ makeThis: (Parser<Token>) -> Parser<Token>) -> Parser<Token> {
+	var this: Parser<Token>!
+	this = makeThis(Parser {str in this.parse(&str)})
+	return this
+}
+/*
+let intParser = RegEx(string: "[0-9]") => {(str: Substring) in Double(str)!}
+let opParser = "-" => ()
+let exprParser: Parser<Double> = recursive {this in
+	(intParser -- opParser -- this => {a, op, b in a - b})
+		| intParser
+}
+
+var str = "5-2" as Substring
+exprParser.parse(&str)
+str
+*/
+
 
 //required due to lack of variadics
 
